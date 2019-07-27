@@ -39,7 +39,7 @@ public class TicksController {
 			stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
 			stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
 
-			return "{\"response\":\"success\"}";
+			return "{\"response\":\"success\", \"details\": \"A new tick has been inserted\"}";
 		} catch (Exception e) {
 			return "{\"response\":\"error\", \"details\":\"" + e.getMessage() + "\"}";
 		}
@@ -65,12 +65,22 @@ public class TicksController {
 			return "{\"response\":\"error\", \"details\":\"" + e.getMessage() + "\"}";
 		}
 	}
+	
+	@RequestMapping(path = "/truncate", produces = "application/json", method = RequestMethod.GET)
+	public String truncate() {
+		try (Connection connection = dataSource.getConnection()) {
+			Statement stmt = connection.createStatement();
+			int rowsAffected = stmt.executeUpdate("DELETE FROM ticks");
+			
+			return "{\"response\":\"success\", \"details\":\"Deleted all ["+rowsAffected+"] ticks\"}";
+		} catch (Exception e) {
+			return "{\"response\":\"error\", \"details\":\"" + e.getMessage() + "\"}";
+		}
+	}
+
 
 	@Bean
 	public DataSource dataSource() throws SQLException {
-		System.out.println("dbUrl: " + dbUrl);
-		System.out.println("unm: " + dbuser);
-		System.out.println("pwd: " + dbpwd);
 		if (dbUrl == null || dbUrl.isEmpty()) {
 			return new HikariDataSource();
 		} else {
